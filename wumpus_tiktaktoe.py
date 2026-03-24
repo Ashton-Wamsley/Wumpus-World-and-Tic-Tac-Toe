@@ -96,4 +96,71 @@ class WumpusKBAgent:
             return risky[0] if risky else None
 
     def step(self):
-        
+        percept = self.world.percept(self.sp)
+        self.update_kb(self.sp, percept)
+        self.trace.append({
+            "sp" : self.sp,
+            "percept" : percept,
+            "safe" : sorted(list(self.safe)),
+            "visited" : sorted(list(self.visited))
+        })
+        if self.sp == self.world.goal:
+            self.reached_goal = True
+            return False
+        move = self.choose_move()
+        if move is None:
+            return False
+        self.sp = move
+        if self.world.is_pit(self.sp) or self.world.is_wumpus(self.sp):
+            self.alive = False
+            self.trace.append({"sp"} : self.sp, "event" : "death")
+            return False
+        return True
+    
+    def run(self, max_steps = 100):
+        steps = 0
+        while steps < max_steps and self.alive and not self.reached_goal:
+            cont = self.step()
+            if not cont:
+                break
+            steps += 1
+
+        return {
+            "success" : self.alive and self.reached_goal,
+            "moves_taken" : steps + 1,
+            "states_expanded" : self.states_expanded,
+            "trace" : self.trace
+        }
+    
+WUMPUS_LAYOUTS = {
+    "easy1": {
+        "size" : 4,
+        "start" : [0, 0],
+        "goal" : [3, 3],
+        "pits" : [[1, 2]],
+        "wumpus" : [2, 1],
+    },
+    "easy2": {
+        "size" : 4,
+        "start" : [0, 0],
+        "goal" : [3, 0],
+        "pits" : [[1, 1]],
+        "wumpus" : [2, 2],
+    },
+    "hard1": {
+        "size" : 4,
+        "start" : [0, 0],
+        "goal" : [3, 3],
+        "pits" : [[1, 2], [2, 3]],
+        "wumpus" : [2, 1],
+    },
+    "hard2": {
+        "size" : 4,
+        "start" : [0, 0],
+        "goal" : [3, 3],
+        "pits" : [[1, 0], [2, 2]],
+        "wumpus" : [1, 3],
+    }
+}
+
+class TicTacToe:
