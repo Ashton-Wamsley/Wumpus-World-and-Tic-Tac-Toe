@@ -138,29 +138,66 @@ WUMPUS_LAYOUTS = {
         "start" : [0, 0],
         "goal" : [3, 3],
         "pits" : [[1, 2]],
-        "wumpus" : [2, 1],
+        "wumpus" : [2, 1]
     },
     "easy2": {
         "size" : 4,
         "start" : [0, 0],
         "goal" : [3, 0],
         "pits" : [[1, 1]],
-        "wumpus" : [2, 2],
+        "wumpus" : [2, 2]
     },
     "hard1": {
         "size" : 4,
         "start" : [0, 0],
         "goal" : [3, 3],
         "pits" : [[1, 2], [2, 3]],
-        "wumpus" : [2, 1],
+        "wumpus" : [2, 1]
     },
     "hard2": {
         "size" : 4,
         "start" : [0, 0],
         "goal" : [3, 3],
         "pits" : [[1, 0], [2, 2]],
-        "wumpus" : [1, 3],
+        "wumpus" : [1, 3]
     }
 }
 
 class TicTacToe:
+    def __init__(self):
+        self.board = [" "] * 9
+        self.trace = []
+        self.nodes_evaluated = 0
+
+    def available_moves(self, board = None):
+        b = board or self.board
+        return [i for i, v in enumerate(b) if v == " "]
+    
+    def winner(self, board = None):
+        b = board or self.board
+        lines = [
+            (0,1,2),(3,4,5),(6,7,8),
+            (0,3,6),(1,4,7),(2,5,8),
+            (0,4,8),(2,4,6)
+        ]
+        for a,b1,c in lines:
+            if board[a] != " " and board[a] == board[b1] == board[c]:
+                return board[a]
+        return None
+
+    def terminal(self, board = None):
+        b = board or self.board
+        return self.winner(b) is not None or all(v != " " for v in b)
+    
+    def utility(self, board, ai):
+        w = self.winner(board)
+        if w == ai:
+            return 1
+        elif w is None and all(v != " " for v in board):
+            return 0
+        elif w is None:
+            return None
+        else:
+            return -1
+        
+    def minimax():
