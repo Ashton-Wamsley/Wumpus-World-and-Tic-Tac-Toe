@@ -200,4 +200,64 @@ class TicTacToe:
         else:
             return -1
         
-    def minimax():
+    def minimax(self, board, player, ai):
+        self.nodes_evaluated += 1
+        util = self.utility(board, ai)
+        if util is not None:
+            return util, None
+        moves = self.available_moves(board)
+        if player == ai:
+            best_val = -float("inf")
+            best_move = None
+            for m in moves:
+                new_board = board[:]
+                new_board[m] = player
+                val, _ = self.minimax(new_board, "O" if player == "X" else "X", ai)
+                if val > best_val:
+                    best_val, best_move = val, m
+            return best_val, best_move
+        else:
+            best_val = float("inf")
+            best_move = None
+            for m in moves:
+                new_board = board[:]
+                new_board[m] = player
+                val, _ = self.minimax(new_board, "O" if player == "X" else "X", ai)
+                if val > best_val:
+                    best_val, best_move = val, m
+            return best_val, best_move
+    
+    def alphabeta(self, board, player, ai, alpha = -float("inf"), beta = float("inf")):
+        self.nodes_evaluated += 1
+        util = self.utility(board, ai)
+        if util is not None:
+            return util, None
+        moves = self.available_moves(board)
+        if player == ai:
+            best_val = -float("inf")
+            best_move = None
+            for m in moves:
+                new_board = board[:]
+                new_board[m] = player
+                val, _ = self.alphabeta(new_board, "O" if player == "X" else "X", ai, alpha, beta)
+                if val > best_val:
+                    best_val, best_move = val, m
+                alpha = max(alpha, val)
+                if beta <= alpha:
+                    break
+            return best_val, best_move
+        else:
+            best_val = float("inf")
+            best_move = None
+            for m in moves:
+                new_board = board[:]
+                new_board[m] = player
+                val, _ = self.alphabeta(new_board, "O" if player == "X" else "X", ai, alpha, beta)
+                if val < best_val:
+                    best_val, best_move = val, m
+                beta = min(beta, val)
+                if beta <= alpha:
+                    break
+            return best_val, best_move
+        
+    def rand_opponent_move():
