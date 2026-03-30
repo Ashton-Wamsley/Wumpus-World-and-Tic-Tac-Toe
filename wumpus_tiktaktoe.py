@@ -260,4 +260,52 @@ class TicTacToe:
                     break
             return best_val, best_move
         
-    def rand_opponent_move():
+    def rand_opponent_move(self):
+        return random.choice(self.available_moves())
+    
+    def scripted_opponent_moves(self):
+        prefs = [4, 0, 2, 6, 8, 1, 3, 5, 7]
+        moves = self.available_moves()
+        for p in prefs:
+            if p in moves:
+                return p
+        return moves[0]
+    
+    def play_game(self, config = "minimax", opponent = "random", ai = "X"):
+        current = "X"
+        self.trace = []
+        self.nodes_evaluated = 0
+
+        while not self.terminal():
+            if current == ai:
+                board_copy = self.board[:]
+                if config == "alphabeta":
+                    _, move = self.alphabeta(board_copy, ai, ai)
+                else:
+                    _, move = self.minimax(board_copy, ai, ai)
+                self.board[move] = ai
+                self.trace.append({"player" : ai, "move" : move, "board" : self.board[:]})
+            else:
+                if opponent == "random":
+                    move = self.rand_opponent_move()
+                else:
+                    move = self.scripted_opponent_moves()
+                self.board[move] = "O" if ai == "X" else "X"
+                self.trace.append({"player" : "O" if ai == "X" else "X", "move": move, "board": self.board[:]})
+            current = "O" if current == "X" else "X"
+    
+        util = self.utility(self.board, ai)
+        if util == 1:
+            result = "Win"
+        elif util == 0:
+            result = "Draw"
+        else:
+            result = "Loss"
+        return {
+            "result" : result,
+            "moves_taken" : len([t for t in self.trace if "move" in t]),
+            "nodes_evaluated" : self.nodes_evaluated,
+            "trace" : self.trace,
+        }
+
+
