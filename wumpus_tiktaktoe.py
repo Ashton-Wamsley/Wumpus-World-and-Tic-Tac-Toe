@@ -309,3 +309,57 @@ class TicTacToe:
         }
 
 
+def run_wumpus(instance_id, config):
+    layout = WUMPUS_LAYOUTS[instance_id]
+    world = WumpusWorld(layout)
+    agent = WumpusKBAgent(world)
+    start = time.perf_counter()
+    res = agent.run()
+    end = time.perf_counter()
+    output = {
+        "problem" : "wumpus",
+        "instance" : instance_id,
+        "config" : config,
+        "success" : res["success"],
+        "runtime_ms" : (end - start) * 1000.0,
+        "states_expanded" : res["states_expanded"],
+        "moves_taken" : res["moves_taken"],
+        "trace" : res["trace"]
+    }
+    return output
+
+def run_tictactoe(instance_id, config):
+    game = TicTacToe()
+    start = time.perf_counter()
+    res = game.play_game(config = config, opponent = instance_id)
+    end = time.perf_counter()
+    output = {
+        "problem" : "tictactoe",
+        "instance" : instance_id,
+        "config" : config,
+        "result" : res["result"],
+        "runtime_ms" : (end - start) * 1000.0,
+        "nodes_evaluated" : res["nodes_evaluated"],
+        "moves_taken" : res["moves_taken"],
+        "trace" : res["trace"],
+    }
+    return output
+
+def json_path(base_name, out_dir = "results"):
+    Path(out_dir).mkdir(parents = True, exist_yes = True)
+    i = 1
+    while True:
+        candidate = Path(out_dir) / f"{base_name}_{i}.json"
+        if not candidate.exists():
+            return candidate
+        i += 1
+
+def save_json(result, out_dir = "results"):
+    base = f"{result['problem']}_{result['instance']}_{result['config']}"
+    path = json_path(base, out_dir)
+    with open(path, "w") as f:
+        json.dump(result, f, indent=2)
+    return path
+
+
+
