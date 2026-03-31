@@ -361,5 +361,32 @@ def save_json(result, out_dir = "results"):
         json.dump(result, f, indent=2)
     return path
 
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--problem", choices = ["wumpus", "tictactoe"], required = True)
+    parser.add_argument("--instance", required = True)
+    parser.add_argument("--config", required = True)
+    parser.add_argument("--seed", type=int, default=None)
+    args = parser.parse_args()
+
+    if args.seed is not None:
+        random.seed(args.seed)
+
+    if args.problem == "wumpus":
+        if args.config != "kb":
+            raise ValueError("Wumpus only supports config 'kb'")
+        if args.instance not in WUMPUS_LAYOUTS:
+            raise ValueError(f"Unknown Wumpus instance {args.instance}")
+        result = run_wumpus(args.instance, args.config)
+    else:
+        if args.config not in ["minimax", "alphabeta"]:
+            raise ValueError("Tic-Tac-Toe config must be 'minimax' or 'alphabeta'")
+        if args.instance not in ["random", "scripted"]:
+            raise ValueError("Tic-Tac-Toe instance must be 'random' or 'scripted'")
+        result = run_tictactoe(args.instance, args.config)
+
+    print(json.dumps(result, indent=2))
+    path = save_json(result)
+    print(f"Saved to {path}")
 
 
