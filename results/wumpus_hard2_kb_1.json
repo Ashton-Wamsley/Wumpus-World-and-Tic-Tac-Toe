@@ -1,0 +1,48 @@
+{
+  "problem": "wumpus",
+  "instance": "hard2",
+  "config": "kb",
+  "success": false,
+  "runtime_ms": 0.05410006269812584,
+  "states_expanded": 1,
+  "moves_taken": 1,
+  "trace": [
+    {
+      "sp": [
+        0,
+        0
+      ],
+      "percept": {
+        "breeze": true,
+        "stench": false
+      },
+      "safe": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "visited": [
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "sp": [
+        1,
+        0
+      ],
+      "event": "death"
+    }
+  ]
+}

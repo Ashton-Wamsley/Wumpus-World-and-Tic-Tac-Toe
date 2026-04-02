@@ -1,0 +1,116 @@
+{
+  "problem": "tictactoe",
+  "instance": "random",
+  "config": "minimax",
+  "result": "win",
+  "runtime_ms": 1447.933099931106,
+  "nodes_evaluated": 558435,
+  "moves_taken": 7,
+  "trace": [
+    {
+      "player": "X",
+      "move": 0,
+      "board": [
+        "X",
+        " ",
+        " ",
+        " ",
+        " ",
+        " ",
+        " ",
+        " ",
+        " "
+      ]
+    },
+    {
+      "player": "O",
+      "move": 1,
+      "board": [
+        "X",
+        "O",
+        " ",
+        " ",
+        " ",
+        " ",
+        " ",
+        " ",
+        " "
+      ]
+    },
+    {
+      "player": "X",
+      "move": 3,
+      "board": [
+        "X",
+        "O",
+        " ",
+        "X",
+        " ",
+        " ",
+        " ",
+        " ",
+        " "
+      ]
+    },
+    {
+      "player": "O",
+      "move": 6,
+      "board": [
+        "X",
+        "O",
+        " ",
+        "X",
+        " ",
+        " ",
+        "O",
+        " ",
+        " "
+      ]
+    },
+    {
+      "player": "X",
+      "move": 4,
+      "board": [
+        "X",
+        "O",
+        " ",
+        "X",
+        "X",
+        " ",
+        "O",
+        " ",
+        " "
+      ]
+    },
+    {
+      "player": "O",
+      "move": 8,
+      "board": [
+        "X",
+        "O",
+        " ",
+        "X",
+        "X",
+        " ",
+        "O",
+        " ",
+        "O"
+      ]
+    },
+    {
+      "player": "X",
+      "move": 5,
+      "board": [
+        "X",
+        "O",
+        " ",
+        "X",
+        "X",
+        "X",
+        "O",
+        " ",
+        "O"
+      ]
+    }
+  ]
+}

@@ -356,6 +356,111 @@ def run_tictactoe(instance_id, config):
     }
     return output
 
+def test_percept_rules():
+    layout = {
+        "size" : 4,
+        "start" : [0, 0],
+        "goal" : [3, 3],
+        "pits" : [[1, 0]],
+        "wumpus" : [0, 1],
+    }
+    world = WumpusWorld(layout)
+
+    p = world.percept((0,0))
+    assert p["breeze"] is True
+    assert p["stench"] is True
+
+    p2 = world.percept((2,2))
+    assert p2["breeze"] is False
+    assert p2["stench"] is False
+
+def test_kb_updates():
+    layout = WUMPUS_LAYOUTS["easy1"]
+    world = WumpusWorld(layout)
+    agent = WumpusKBAgent(world)
+
+    percept = world.percept(agent.sp)
+    agent.update_kb(agent.sp, percept)
+
+    assert agent.sp in agent.safe
+    assert agent.sp in agent.no_pit
+    assert agent.sp in agent.no_wumpus
+
+    if not percept["breeze"]:
+        for n in world.neighbors(agent.sp):
+            assert n in agent.no_pit
+    if not percept["stench"]:
+        for n in world.neighbors(agent.sp):
+            assert n in agent.no_wumpus
+
+def test_agent_avoids_known_unsafe():
+    layout = WUMPUS_LAYOUTS["easy1"]
+    world = WumpusWorld(layout)
+    agent = WumpusKBAgent(world)
+
+    neighbors = list(world.neighbors(agent.sp))
+    bad = neighbors[0]
+    agent.possible_pit.add(bad)
+
+    move = agent.choose_move()
+    assert move != bad, "AI should not move into a known unsafe space"
+
+def test_legal_moves():
+    game = TicTacToe()
+    game.board = [
+        "X","O","X",
+        " ","O"," ",
+        " "," ","X"
+    ]
+    assert game.available_moves() == [3,5,6,7]
+
+def test_terminal_states():
+    game = TicTacToe()
+
+    game.board = ["X","X","X"," "," "," "," "," "," "]
+    assert game.terminal() is True
+    assert game.winner() == "X"
+
+    game.board = [
+        "X","O","X",
+        "X","O","O",
+        "O","X","X"
+    ]
+    assert game.terminal() is True
+    assert game.winner() is None
+
+    game.board = [
+        "X","O","X",
+        " ","O"," ",
+        " "," ","X"
+    ]
+    assert game.terminal() is False
+
+def test_minimax_optimal_move():
+    game = TicTacToe()
+    game.board = [
+        "X","X"," ",
+        "O","O"," ",
+        " "," "," "
+    ]
+    _, move = game.minimax(game.board[:], "X", "X")
+    assert move == 2, f"Minimax should choose winning move 2, got {move}"
+
+def run_all_tests():
+    print("\nRunning Wumpus tests.")
+    test_percept_rules()
+    test_kb_updates()
+    test_agent_avoids_known_unsafe()
+    print("Wumpus tests passed.")
+
+    print("\nRunning Tic-Tac-Toe tests.")
+    test_legal_moves()
+    test_terminal_states()
+    test_minimax_optimal_move()
+    print("Tic-Tac-Toe tests passed.")
+
+    print("\nAll tests passed successfully.\n")
+
 def json_path(base_name, out_dir = "results"):
     Path(out_dir).mkdir(parents=True, exist_ok=True)
     i = 1
@@ -410,111 +515,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-def test_percept_rules():
-    layout = {
-        "size" : 4,
-        "start" : [0, 0],
-        "goal" : [3, 3],
-        "pits" : [[1, 0]],
-        "wumpus" : [0, 1],
-    }
-    world = WumpusWorld(layout)
-
-    p = world.percept((0,0))
-    assert p["breeze"] is True
-    assert p["stench"] is True
-
-    p2 = world.percept((2,2))
-    assert p2["breeze"] is False
-    assert p2["stench"] is False
-
-def test_kb_updates():
-    layout = WUMPUS_LAYOUTS["easy1"]
-    world = WumpusWorld(layout)
-    agent = WumpusKBAgent(world)
-
-    percept = world.percept(agent.sp)
-    agent.update_kb(agent.sp, percept)
-
-    assert agent.sp in agent.safe
-    assert agent.sp in agent.no_pit
-    assert agent.sp in agent.no_wumpus
-
-    if not percept["breeze"]:
-        for n in world.neighbors(agent.sp):
-            assert n in agent.no_pit
-    if not percept["stench"]:
-        for n in world.neighbors(agent.sp):
-            assert n in agent.no_wumpus
-
-
-def test_agent_avoids_known_unsafe():
-    layout = WUMPUS_LAYOUTS["easy1"]
-    world = WumpusWorld(layout)
-    agent = WumpusKBAgent(world)
-
-    neighbors = list(world.neighbors(agent.sp))
-    bad = neighbors[0]
-    agent.possible_pit.add(bad)
-
-    move = agent.choose_move()
-    assert move != bad, "AI should not move into a known unsafe space"
-
-def test_legal_moves():
-    game = TicTacToe()
-    game.board = [
-        "X","O","X",
-        " ","O"," ",
-        " "," ","X"
-    ]
-    assert game.available_moves() == [3,5,6,7]
-
-
-def test_terminal_states():
-    game = TicTacToe()
-
-    game.board = ["X","X","X"," "," "," "," "," "," "]
-    assert game.terminal() is True
-    assert game.winner() == "X"
-
-    game.board = [
-        "X","O","X",
-        "X","O","O",
-        "O","X","X"
-    ]
-    assert game.terminal() is True
-    assert game.winner() is None
-
-    game.board = [
-        "X","O","X",
-        " ","O"," ",
-        " "," ","X"
-    ]
-    assert game.terminal() is False
-
-def test_minimax_optimal_move():
-    game = TicTacToe()
-    game.board = [
-        "X","X"," ",
-        "O","O"," ",
-        " "," "," "
-    ]
-    _, move = game.minimax(game.board[:], "X", "X")
-    assert move == 2, f"Minimax should choose winning move 2, got {move}"
-
-
-def run_all_tests():
-    print("\nRunning Wumpus tests.")
-    test_percept_rules()
-    test_kb_updates()
-    test_agent_avoids_known_unsafe()
-    print("Wumpus tests passed.")
-
-    print("\nRunning Tic-Tac-Toe tests.")
-    test_legal_moves()
-    test_terminal_states()
-    test_minimax_optimal_move()
-    print("Tic-Tac-Toe tests passed.")
-
-    print("\nAll tests passed successfully.\n")
