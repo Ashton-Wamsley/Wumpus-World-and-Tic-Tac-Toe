@@ -1,6 +1,6 @@
-This project implements two AI problems:
-- Wumpus World using a Knowledge Based Agent
-- Tic‑Tac‑Toe using Minimax and Alpha‑Beta Pruning
+# This project implements two AI problems:
+## - Wumpus World using a Knowledge Based Agent
+## - Tic‑Tac‑Toe using Minimax and Alpha‑Beta Pruning
 ## The program supports running individual problem instances, saving results as JSON, and running a built in tests.
 # How to run:
 ### All commands are executed from the terminal: ex. python wumpus_tictactoe.py [options]
