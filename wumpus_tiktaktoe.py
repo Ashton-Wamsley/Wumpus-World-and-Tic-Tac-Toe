@@ -31,6 +31,9 @@ class WumpusWorld:
     def is_wumpus(self, cell):
         return cell == self.wumpus
     
+    def is_pit(self, cell):
+        return cell in self.pits
+    
 class WumpusKBAgent:
     def __init__(self, world):
         self.world = world
@@ -38,9 +41,9 @@ class WumpusKBAgent:
         self.alive = True
         self.goal_reached = False
         self.visited = set()
-        self.safe = set([self.ps])
-        self.no_pit = set([self.ps])
-        self.no_wumpus = set([self.ps])
+        self.safe = set([self.sp])
+        self.no_pit = set([self.sp])
+        self.no_wumpus = set([self.sp])
         self.possible_pit = set()
         self.possible_wumpus = set()
         self.trace = []
@@ -54,13 +57,22 @@ class WumpusKBAgent:
 
         if not breeze:
             for n in adjacent:
-                self.no_wumpus.add(n)
+                self.no_pit.add(n)
                 self.safe.add(n)
-                if n in self.possible_wumpus:
-                    self.possible_wumpus.remove(n)
+                self.possible_pit.discard(n)
         else:
             for n in adjacent:
-                if n not in self.no_wumpus and n not in self.safe:
+                if n not in self.no_pit:
+                    self.possible_pit.add(n)
+        
+        if not stench:
+            for n in adjacent:
+                self.no_wumpus.add(n)
+                self.safe.add(n)
+                self.possible_wumpus.discard(n)
+        else:
+            for n in adjacent:
+                if n not in self.no_wumpus:
                     self.possible_wumpus.add(n)
 
         for n in adjacent:
@@ -69,31 +81,30 @@ class WumpusKBAgent:
 
     def choose_move(self):
         self.states_expanded += 1
+        neighbors = list(self.world.neighbors(self.sp))
 
-        possible_moves = list(self.world.neighbors(self.ps))
-        safe_unvisited = [c for c in possible_moves if c in self.safe and c not in self.visited]
+        safe_unvisited = [c for c in neighbors if c in self.safe and c not in self.visited]
         if safe_unvisited:
             return safe_unvisited[0]
-        
-        safe_visited = [c for c in possible_moves if c in self.safe]
+
+        safe_visited = [c for c in neighbors if c in self.safe]
         if safe_visited:
             return safe_visited[0]
-        
+
         unknown = [
-            c for c in possible_moves
+            c for c in neighbors
             if c not in self.safe
             and c not in self.possible_pit
             and c not in self.possible_wumpus
         ]
         if unknown:
             return unknown[0]
-        
+
         risky = [
-            c for c in possible_moves
+            c for c in neighbors
             if c not in self.possible_pit and c not in self.possible_wumpus
         ]
-        if risky:
-            return risky[0] if risky else None
+        return risky[0] if risky else None
 
     def step(self):
         percept = self.world.percept(self.sp)
@@ -105,7 +116,7 @@ class WumpusKBAgent:
             "visited" : sorted(list(self.visited))
         })
         if self.sp == self.world.goal:
-            self.reached_goal = True
+            self.goal_reached = True
             return False
         move = self.choose_move()
         if move is None:
@@ -113,20 +124,20 @@ class WumpusKBAgent:
         self.sp = move
         if self.world.is_pit(self.sp) or self.world.is_wumpus(self.sp):
             self.alive = False
-            self.trace.append({"sp"} : self.sp, "event" : "death")
+            self.trace.append({"sp" : self.sp, "event" : "death"})
             return False
         return True
     
     def run(self, max_steps = 100):
         steps = 0
-        while steps < max_steps and self.alive and not self.reached_goal:
+        while steps < max_steps and self.alive and not self.goal_reached:
             cont = self.step()
             if not cont:
                 break
             steps += 1
 
         return {
-            "success" : self.alive and self.reached_goal,
+            "success" : self.alive and self.goal_reached,
             "moves_taken" : steps + 1,
             "states_expanded" : self.states_expanded,
             "trace" : self.trace
@@ -180,9 +191,9 @@ class TicTacToe:
             (0,3,6),(1,4,7),(2,5,8),
             (0,4,8),(2,4,6)
         ]
-        for a,b1,c in lines:
-            if board[a] != " " and board[a] == board[b1] == board[c]:
-                return board[a]
+        for a, b1, c in lines:
+            if b[a] != " " and b[a] == b[b1] == b[c]:
+                return b[a]
         return None
 
     def terminal(self, board = None):
@@ -223,7 +234,7 @@ class TicTacToe:
                 new_board = board[:]
                 new_board[m] = player
                 val, _ = self.minimax(new_board, "O" if player == "X" else "X", ai)
-                if val > best_val:
+                if val < best_val:
                     best_val, best_move = val, m
             return best_val, best_move
     
@@ -263,7 +274,7 @@ class TicTacToe:
     def rand_opponent_move(self):
         return random.choice(self.available_moves())
     
-    def scripted_opponent_moves(self):
+    def scripted_opponent_move(self):
         prefs = [4, 0, 2, 6, 8, 1, 3, 5, 7]
         moves = self.available_moves()
         for p in prefs:
@@ -289,18 +300,18 @@ class TicTacToe:
                 if opponent == "random":
                     move = self.rand_opponent_move()
                 else:
-                    move = self.scripted_opponent_moves()
+                    move = self.scripted_opponent_move()
                 self.board[move] = "O" if ai == "X" else "X"
                 self.trace.append({"player" : "O" if ai == "X" else "X", "move": move, "board": self.board[:]})
             current = "O" if current == "X" else "X"
     
         util = self.utility(self.board, ai)
         if util == 1:
-            result = "Win"
+            result = "win"
         elif util == 0:
-            result = "Draw"
+            result = "draw"
         else:
-            result = "Loss"
+            result = "loss"
         return {
             "result" : result,
             "moves_taken" : len([t for t in self.trace if "move" in t]),
@@ -346,7 +357,7 @@ def run_tictactoe(instance_id, config):
     return output
 
 def json_path(base_name, out_dir = "results"):
-    Path(out_dir).mkdir(parents = True, exist_yes = True)
+    Path(out_dir).mkdir(parents=True, exist_ok=True)
     i = 1
     while True:
         candidate = Path(out_dir) / f"{base_name}_{i}.json"
@@ -363,12 +374,19 @@ def save_json(result, out_dir = "results"):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--problem", choices = ["wumpus", "tictactoe"], required = True)
-    parser.add_argument("--instance", required = True)
-    parser.add_argument("--config", required = True)
+    parser.add_argument("--problem", choices = ["wumpus", "tictactoe"])
+    parser.add_argument("--instance")
+    parser.add_argument("--config")
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--run-tests", action = "store_true")
     args = parser.parse_args()
+
+    if args.run_tests:
+        run_all_tests()
+        return
+
+    if args.problem is None or args.instance is None or args.config is None:
+        raise ValueError("Must specify --problem, --instance, and --config unless using --run-tests")
 
     if args.seed is not None:
         random.seed(args.seed)
@@ -385,10 +403,6 @@ def main():
         if args.instance not in ["random", "scripted"]:
             raise ValueError("Tic-Tac-Toe instance must be 'random' or 'scripted'")
         result = run_tictactoe(args.instance, args.config)
-    
-    if args.run_tests:
-        run_all_tests()
-        return
 
     print(json.dumps(result, indent=2))
     path = save_json(result)
